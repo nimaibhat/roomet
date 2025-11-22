@@ -55,12 +55,19 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }: AuthScreenPro
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔐 Attempting sign in with password...')
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) throw error
+
+      console.log('✅ Sign in successful, session:', data.session)
+      console.log('✅ User:', data.user)
+
+      // Wait a moment for the auth state to propagate to useAuth hook
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       onSignIn()
     } catch (err: any) {
@@ -91,17 +98,22 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }: AuthScreenPro
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('📝 Attempting sign up...')
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Disable email confirmation for faster onboarding
+          data: {
+            email,
+          }
         },
       })
 
       if (error) {
         const errorMsg = error.message.toLowerCase()
-        
+
         // If user already exists, switch to password login mode
         if (
           errorMsg.includes('user already registered') ||
@@ -114,11 +126,25 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }: AuthScreenPro
           setIsLoading(false)
           return
         }
-        
+
         throw error
       }
 
-      onSignUp()
+      console.log('✅ Sign up successful')
+      console.log('Session:', data.session)
+      console.log('User:', data.user)
+
+      // Check if email confirmation is required
+      if (data.session) {
+        console.log('✅ Session established immediately, proceeding to onboarding')
+        // Wait a moment for the auth state to propagate to useAuth hook
+        await new Promise(resolve => setTimeout(resolve, 100))
+        onSignUp()
+      } else {
+        console.log('⚠️ Email confirmation required')
+        setError('Please check your email to confirm your account, then sign in.')
+        setMode('password')
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {

@@ -97,11 +97,15 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
   const handleFinish = async (e?: React.MouseEvent) => {
     e?.preventDefault()
     e?.stopPropagation()
-    
-    console.log('handleFinish called', { user, location, startDate, endDate })
-    
+
+    console.log('=== ONBOARDING FINISH CLICKED ===')
+    console.log('User object:', user)
+    console.log('User ID:', user?.id)
+    console.log('Onboarding data:', { location, startDate, endDate, budget, selectedHobbies, selectedLifestyle })
+
     if (!user) {
-      console.error('No user found, cannot complete onboarding')
+      console.error('❌ ERROR: No user found, cannot complete onboarding')
+      alert('Error: You must be logged in to complete onboarding. Please refresh and try again.')
       return
     }
 
@@ -116,26 +120,27 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
         lifestyle_preferences: selectedLifestyle,
       }
 
-      console.log('Saving onboarding data:', onboardingData)
+      console.log('💾 Attempting to save onboarding data:', onboardingData)
       const success = await markOnboardingComplete(user.id, onboardingData)
-      
-      // Always call onComplete to redirect, even if save fails
-      // The user can update their profile later if needed
+
       if (success) {
-        console.log('Onboarding data saved successfully')
+        console.log('✅ Onboarding data saved successfully')
       } else {
-        console.warn('Onboarding data save failed, but continuing to dashboard')
+        console.warn('⚠️ Onboarding data save failed, but continuing to dashboard')
       }
-      
-      console.log('Calling onComplete callback')
+
+      console.log('🔄 Calling onComplete callback to redirect to dashboard')
       onComplete()
+      console.log('✅ onComplete callback executed')
     } catch (error) {
-      console.error('Error saving onboarding:', error)
+      console.error('❌ Error saving onboarding:', error)
       // Still redirect even if there's an error
-      console.log('Calling onComplete callback after error')
+      console.log('🔄 Calling onComplete callback after error')
       onComplete()
+      console.log('✅ onComplete callback executed after error')
     } finally {
       setIsSaving(false)
+      console.log('=== ONBOARDING FINISH COMPLETED ===')
     }
   }
 

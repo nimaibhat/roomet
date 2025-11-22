@@ -36,14 +36,28 @@ function HomeContent() {
 
   // Check auth state and routing
   useEffect(() => {
-    if (loading) return
+    console.log('🔄 useEffect triggered - user:', user?.id, 'loading:', loading, 'appState:', appState)
+
+    if (loading) {
+      console.log('⏳ Still loading auth state...')
+      return
+    }
 
     if (user) {
+      console.log('✅ User is authenticated:', user.id)
       // User is logged in, check if they've completed onboarding
-      checkOnboardingStatus()
+      // Only check if we're not already on dashboard
+      if (appState !== 'dashboard') {
+        console.log('🔍 Checking onboarding status...')
+        checkOnboardingStatus()
+      }
     } else {
-      // User is not logged in, show landing page
-      setAppState('landing')
+      console.log('❌ No user found')
+      // User is not logged in, show landing page (unless already on auth screen)
+      if (appState !== 'auth') {
+        console.log('🏠 Redirecting to landing page')
+        setAppState('landing')
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading])
@@ -53,18 +67,23 @@ function HomeContent() {
   }
 
   const handleSignIn = async () => {
-    // User signed in, check onboarding status
-    await checkOnboardingStatus()
+    console.log('📍 handleSignIn called')
+    // Wait for user state to be updated by useAuth hook
+    // useEffect will check onboarding status once user is available
   }
 
   const handleSignUp = () => {
-    // New user signed up, show onboarding
-    setAppState('onboarding')
+    console.log('📍 handleSignUp called')
+    // Wait for user state to be updated by useAuth hook
+    // useEffect will show onboarding once user is available
   }
 
   const handleOnboardingComplete = () => {
-    console.log('handleOnboardingComplete called, setting appState to dashboard')
+    console.log('🎯 handleOnboardingComplete called in page.tsx')
+    console.log('📍 Current appState:', appState)
+    console.log('📍 Setting appState to dashboard')
     setAppState('dashboard')
+    console.log('✅ appState updated to dashboard')
   }
 
   // Show loading state while checking auth

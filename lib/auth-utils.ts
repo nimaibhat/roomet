@@ -126,19 +126,38 @@ export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
  */
 export async function markOnboardingComplete(userId: string, onboardingData: any) {
   try {
-    const { error } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        onboarding_completed: true,
-        ...onboardingData,
-        updated_at: new Date().toISOString(),
-      })
+    console.log('💾 markOnboardingComplete called with userId:', userId)
+    console.log('💾 Data to save:', onboardingData)
 
-    if (error) throw error
+    const dataToUpsert = {
+      id: userId,
+      onboarding_completed: true,
+      ...onboardingData,
+      updated_at: new Date().toISOString(),
+    }
+
+    console.log('💾 Upserting to user_profiles:', dataToUpsert)
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert(dataToUpsert)
+      .select()
+
+    if (error) {
+      console.error('❌ Supabase error:', error)
+      console.error('❌ Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw error
+    }
+
+    console.log('✅ Data upserted successfully:', data)
     return true
   } catch (err) {
-    console.error('Error marking onboarding complete:', err)
+    console.error('❌ Error marking onboarding complete:', err)
     return false
   }
 }
