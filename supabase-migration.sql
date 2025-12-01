@@ -14,6 +14,22 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Create function to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = TIMEZONE('utc'::text, NOW());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to update updated_at on row changes
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at
+    BEFORE UPDATE ON user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Enable Row Level Security
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
